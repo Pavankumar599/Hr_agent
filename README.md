@@ -1,6 +1,6 @@
 # HR Agent — Agentic AI with Tool Use
 
-An end-to-end **HR AI Agent** built on Claude's tool use API.
+An end-to-end **HR AI Agent** built with Ollama and Qwen 3.1:8B model using tool use API.
 Unlike a simple RAG bot, this agent *decides* which tools to call,
 executes them, and loops until it has a complete answer.
 
@@ -21,7 +21,7 @@ hr_agent/
 │   └── tool_executor.py    ← implements all 5 agent tools
 │
 ├── agent/
-│   ├── tool_definitions.py ← tool schemas sent to Claude API
+│   ├── tool_definitions.py ← tool schemas sent to Ollama API
 │   └── hr_agent.py         ← the agentic loop (the core)
 │
 ├── ui/
@@ -33,13 +33,32 @@ hr_agent/
 
 ---
 
+## Prerequisites
+
+- **Ollama** installed and running locally
+- **Qwen 3.1:8B** model pulled in Ollama
+
+### Install Ollama & Pull Model
+
+```bash
+# 1. Install Ollama from https://ollama.ai
+
+# 2. Pull the Qwen 3.1:8B model
+ollama pull qwen:3.1-8b
+
+# 3. Start Ollama server (usually runs on localhost:11434)
+ollama serve
+```
+
+---
+
 ## Architecture — How the Agent Works
 
 ```
 Employee question
         │
         ▼
-  mistral reads question
+  Qwen 3.1:8B reads question
   + system prompt
   + 5 tool definitions
         │
@@ -51,20 +70,20 @@ Employee question
   → returns real result
         │
         ▼
-  mistral reads result
+  Qwen 3.1:8B reads result
   "Now I need check_leave_balance too"
         │
         ▼
   tool_executor.py runs again
         │
         ▼
-  Claude has enough → writes final answer
+  Qwen has enough context → writes final answer
         │
         ▼
   Answer shown in chat UI
 ```
 
-The loop repeats until Claude stops calling tools and gives a text answer.
+The loop repeats until Qwen stops calling tools and gives a text answer.
 This is the **ReAct pattern** (Reason + Act).
 
 ---
@@ -97,9 +116,23 @@ This is the **ReAct pattern** (Reason + Act).
 # 1. Install dependencies
 pip install -r requirements.txt
 
+# 2. Ensure Ollama is running with Qwen 3.1:8B model
+ollama serve
 
-# 3. Launch the chatbot
+# 3. Launch the chatbot (in a new terminal)
 streamlit run ui/app.py
+```
+
+---
+
+## Configuration
+
+Update `agent/hr_agent.py` if needed to match your Ollama setup:
+
+```python
+# Default Ollama endpoint
+OLLAMA_BASE_URL = "http://localhost:11434"
+MODEL_NAME = "qwen:3.1-8b"
 ```
 
 ---
@@ -132,8 +165,37 @@ streamlit run ui/app.py
 
 | | RAG Bot (previous) | HR Agent (this) |
 |---|---|---|
-| Flow | Fixed: retrieve → answer | Dynamic: Claude decides |
+| Flow | Fixed: retrieve → answer | Dynamic: Qwen decides |
 | Tools | Only policy search | 5 tools + can chain them |
 | Actions | Read-only | Can apply leave, escalate |
 | Memory | Per-question | Multi-turn conversation |
 | Reasoning | None | Decides what to do next |
+| Model | N/A | Qwen 3.1:8B (local via Ollama) |
+
+---
+
+## Troubleshooting
+
+**Ollama connection error:**
+```
+ConnectionError: Failed to connect to Ollama at http://localhost:11434
+```
+→ Make sure Ollama is running: `ollama serve`
+
+**Model not found:**
+```
+Error: Model 'qwen:3.1-8b' not found
+```
+→ Pull the model: `ollama pull qwen:3.1-8b`
+
+**Tool execution failing:**
+→ Check `tool_executor.py` logs and ensure all dependencies are installed (`pip install -r requirements.txt`)
+
+---
+
+## Local Deployment Benefits
+
+✅ **Privacy** — All data stays on your machine  
+✅ **No API costs** — Ollama runs locally (free)  
+✅ **Fast inference** — GPU acceleration available  
+✅ **Offline capability** — Works without internet
