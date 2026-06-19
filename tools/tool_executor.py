@@ -43,6 +43,15 @@ def tool_check_leave_balance(employee_id: str) -> str:
 
 def tool_apply_for_leave(employee_id: str, leave_type: str,
                          start_date: str, end_date: str, reason: str) -> str:
+    """
+    IMPORTANT:
+
+    Before calling this tool you MUST call
+    check_leave_balance.
+
+    Never apply leave without verifying
+    sufficient balance.
+    """
     emp = EMPLOYEES.get(employee_id)
     if not emp:
         return f"Employee ID '{employee_id}' not found."
@@ -115,6 +124,7 @@ def tool_escalate_to_hr(employee_id: str, subject: str, message: str) -> str:
     name  = emp.get("name", employee_id)
     email = emp.get("email", "unknown")
     # Simulated — just log it
+    HR_EMAIL = 'hr@ANSR.com'
     print(f"\n[ESCALATION EMAIL]\nTo: {HR_EMAIL}\nFrom: {email}\n"
           f"Subject: {subject}\nMessage: {message}\n")
     return (

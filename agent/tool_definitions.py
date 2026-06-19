@@ -9,10 +9,14 @@ TOOL_DEFINITIONS = [
     {
         "name": "search_hr_policy",
         "description": (
-            "Search the HR policy document for information about company policies. "
-            "Use this for questions about leave rules, WFH policy, compensation, "
-            "reimbursements, onboarding, code of conduct, IT security, and benefits. "
-            "Always call this first for policy-related questions before answering from memory."
+            "ALWAYS call this tool when an employee asks about company policies, rules, "
+            "or guidelines. "
+            "Trigger keywords: policy, rules, WFH, work from home, office hours, "
+            "maternity, paternity, notice period, reimbursement, onboarding, "
+            "code of conduct, IT security, benefits, compensation, dress code. "
+            "Do NOT answer policy questions from memory — always call this tool. "
+            "Use for questions about leave rules, WFH policy, compensation, "
+            "reimbursements, onboarding, code of conduct, IT security, and benefits."
         ),
         "input_schema": {
             "type": "object",
@@ -28,9 +32,14 @@ TOOL_DEFINITIONS = [
     {
         "name": "check_leave_balance",
         "description": (
-            "Check the remaining leave balance (casual, sick, earned) for an employee. "
-            "Call this when an employee asks how many leaves they have left, "
-            "or before applying for leave to verify availability."
+            "ALWAYS call this tool when an employee asks about their leave balance "
+            "or how many leaves they have remaining. "
+            "Trigger keywords: leaves left, leave balance, how many leaves, "
+            "remaining leaves, casual leaves, sick leaves, earned leaves, "
+            "annual leaves, how many days off, leave count. "
+            "Do NOT tell the employee to check the portal — call this tool immediately. "
+            "Extract employee_id from their message (e.g. E001, E002). "
+            "Also call this before applying leave to verify availability."
         ),
         "input_schema": {
             "type": "object",
@@ -46,9 +55,13 @@ TOOL_DEFINITIONS = [
     {
         "name": "apply_for_leave",
         "description": (
-            "Submit a leave application for an employee. "
-            "Use this when an employee explicitly asks to apply for or book leave. "
-            "Always check leave balance first. Require all fields before calling."
+            "ALWAYS call this tool when an employee wants to apply, book, or request leave. "
+            "Trigger keywords: apply leave, book leave, take a day off, request leave, "
+            "need leave, want to take leave, submit leave. "
+            "Always call check_leave_balance first to verify balance is available. "
+            "Ask employee for missing details (leave_type, start_date, end_date, reason) "
+            "before calling if not provided. "
+            "Require all fields before submitting."
         ),
         "input_schema": {
             "type": "object",
@@ -65,8 +78,13 @@ TOOL_DEFINITIONS = [
     {
         "name": "get_payslip",
         "description": (
-            "Retrieve the payslip summary for an employee for a given month. "
-            "Use when an employee asks about their salary, net pay, TDS, or payslip."
+            "ALWAYS call this tool when an employee asks about their salary, "
+            "payslip, net pay, take home, or deductions. "
+            "Trigger keywords: payslip, salary, pay slip, take home, net pay, "
+            "how much paid, salary slip, TDS, deductions, PF, provident fund. "
+            "Do NOT answer salary questions from memory — always call this tool. "
+            "Extract employee_id and month from their message. "
+            "If month is not mentioned, use the current month."
         ),
         "input_schema": {
             "type": "object",
@@ -80,9 +98,13 @@ TOOL_DEFINITIONS = [
     {
         "name": "escalate_to_hr",
         "description": (
-            "Send an escalation email to the HR team when the query cannot be resolved "
-            "by policy search or available tools. Use for complex, sensitive, or "
-            "out-of-policy situations that need human HR attention."
+            "ALWAYS call this tool when an employee wants to raise a complaint, "
+            "report an issue, express a grievance, mention harassment, unfair treatment, "
+            "salary problems, or any negative experience. "
+            "Trigger keywords: complaint, complain, issue, problem, report, grievance, "
+            "not happy, harassment, unfair, concern, raise, escalate, angry, frustrated. "
+            "Do NOT answer these with general advice — always call this tool immediately. "
+            "Extract the employee_id from their message if they provide it."
         ),
         "input_schema": {
             "type": "object",

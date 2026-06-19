@@ -1,0 +1,7 @@
+from huggingface_hub import InferenceClient
+
+client = InferenceClient(
+    api_key="YOUR_HF_TOKEN"
+)
+
+print("Connected successfully")
