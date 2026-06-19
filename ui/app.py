@@ -6,7 +6,7 @@ Run:  streamlit run ui/app.py
 
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from logger import logger
 import streamlit as st
 from agent.hr_agent import run_agent
 
@@ -16,6 +16,8 @@ st.set_page_config(
     page_icon="🏢",
     layout="centered",
 )
+
+logger.info("APP_START | Streamlit HR Assistant started")  # ✅ LOG
 
 # ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -125,6 +127,10 @@ if st.session_state.pending_input:
     st.session_state.pending_input = None
 
 if prompt:
+
+    # ✅ LOG — capture every question the user submits
+    logger.info(f"UI_INPUT | message={prompt}")
+
     # Show user message
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -160,6 +166,8 @@ if prompt:
 
         except Exception as e:
             error_text = str(e)
+            logger.error(f"UI_CRASH | message={prompt} | error={str(e)}")  # ✅ LOG
+
 
         status_box.empty()
 
@@ -182,9 +190,10 @@ if prompt:
 
         if error_text:
             reply = f"⚠️ Error: {error_text}"
+            logger.warning(f"UI_ERROR_REPLY | error={error_text}")          
         else:
             reply = final_text or "I couldn't find an answer. Please try rephrasing."
-
+            logger.info(f"UI_REPLY | reply={reply[:200]}")  
         answer_box.markdown(reply)
 
     # Save to session

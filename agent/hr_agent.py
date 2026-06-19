@@ -2,6 +2,7 @@ import os
 import json
 from typing import List, Dict, Any, Generator
 from dotenv import load_dotenv
+from logger import logger
 
 from agent.tool_definitions import TOOL_DEFINITIONS
 from tools.tool_executor import execute_tool
@@ -70,6 +71,8 @@ OPENAI_TOOLS = convert_tools_for_openai(TOOL_DEFINITIONS)
 
 
 def run_agent(user_message: str, history: List[Dict]) -> Generator[Dict, None, None]:
+    # log1 capture everything incoming question
+    logger.info(f"USER_QUERY | message = {user_message} | history = {history}")
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     messages.extend(history)
     messages.append({"role": "user", "content": user_message})
@@ -83,6 +86,9 @@ def run_agent(user_message: str, history: List[Dict]) -> Generator[Dict, None, N
                 tool_choice="auto",
             )
         except Exception as e:
+            # LOG Capture API errors
+            logger.error(f"GROQ_API_ERROR | error={str(e)}")
+
             yield {"type": "error", "text": str(e)}
             return
 
@@ -90,6 +96,7 @@ def run_agent(user_message: str, history: List[Dict]) -> Generator[Dict, None, N
         tool_calls = getattr(msg, "tool_calls", None)
 
         if not tool_calls:
+            # LOG4 Capture the final answer
             yield {"type": "final", "text": msg.content}
             return
 
@@ -101,11 +108,14 @@ def run_agent(user_message: str, history: List[Dict]) -> Generator[Dict, None, N
 
         for tc in tool_calls:
             args = json.loads(tc.function.arguments)
-
+            # LOG2 which tool was called and with what inputs
+            logger.info(f"TOOL_CALL | tool={tc.function.name} | inputs={args}")
             yield {"type": "tool_call", "tool": tc.function.name, "inputs": args}
 
             result = execute_tool(tc.function.name, args)
 
+            # LOG3 - what the tool returned
+            logger.info(f"TOOL_RESULT | tool={tc.function.name} | result={result}")
             yield {"type": "tool_result", "tool": tc.function.name, "result": result}
 
             messages.append({
@@ -120,4 +130,8 @@ def run_agent_sync(user_message: str, history: List[Dict]) -> Dict[str, Any]:
     tool_calls = [e for e in events if e["type"] == "tool_call"]
     final = next((e["text"] for e in events if e["type"] == "final"), "No answer.")
     error = next((e["text"] for e in events if e["type"] == "error"), None)
+    
+    # LOG - sync wrapper summary
+    logger.info(f"SYNC_SUMMARY | tools_used= {[t['tool'] for t in tool_calls]} | error={error}")
+    
     return {"answer": final, "tool_calls": tool_calls, "error": error}
