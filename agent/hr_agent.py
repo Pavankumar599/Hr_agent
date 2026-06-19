@@ -51,6 +51,10 @@ CRITICAL TOOL RULES — always follow these, no exceptions:
 
 NEVER answer any of the above from your own knowledge.
 ALWAYS call the correct tool. That is your only job.
+
+NEVER call any other tool. Do NOT use brave_search, web_search,
+or any tool not listed above. If you cannot answer using these
+5 tools, say so in plain text. Never invent or hallucinate tools.
 """
 
 # Convert Anthropic-style tools to OpenAI-style for Ollama
@@ -133,5 +137,5 @@ def run_agent_sync(user_message: str, history: List[Dict]) -> Dict[str, Any]:
     
     # LOG - sync wrapper summary
     logger.info(f"SYNC_SUMMARY | tools_used= {[t['tool'] for t in tool_calls]} | error={error}")
-    
+
     return {"answer": final, "tool_calls": tool_calls, "error": error}
