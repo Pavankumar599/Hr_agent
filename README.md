@@ -1,6 +1,6 @@
 # HR Agent — Agentic AI with Tool Use
 
-An end-to-end **HR AI Agent** built with Ollama and Qwen 3.1:8B model using tool use API.
+An end-to-end **HR AI Agent** built with Groq and LLaMA 3.1:8B model using tool use API.
 Unlike a simple RAG bot, this agent *decides* which tools to call,
 executes them, and loops until it has a complete answer.
 
@@ -21,12 +21,13 @@ hr_agent/
 │   └── tool_executor.py    ← implements all 5 agent tools
 │
 ├── agent/
-│   ├── tool_definitions.py ← tool schemas sent to Ollama API
+│   ├── tool_definitions.py ← tool schemas sent to Groq API
 │   └── hr_agent.py         ← the agentic loop (the core)
 │
 ├── ui/
 │   └── app.py              ← Streamlit chat UI with tool activity panel
 │
+├── .gitignore
 ├── requirements.txt
 └── README.md
 ```
@@ -35,19 +36,32 @@ hr_agent/
 
 ## Prerequisites
 
-- **Ollama** installed and running locally
-- **Qwen 3.1:8B** model pulled in Ollama
+- Python 3.9+
+- A free **Groq API key** from [console.groq.com](https://console.groq.com)
+- No local model or GPU required — Groq runs in the cloud for free
 
-### Install Ollama & Pull Model
+---
+
+## Quickstart
 
 ```bash
-# 1. Install Ollama from https://ollama.ai
+# 1. Clone the repo
+git clone https://github.com/Pavankumar599/Hr_agent.git
+cd hr_agent
 
-# 2. Pull the Qwen 3.1:8B model
-ollama pull qwen:3.1-8b
+# 2. Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate        # Mac/Linux
+venv\Scripts\activate           # Windows
 
-# 3. Start Ollama server (usually runs on localhost:11434)
-ollama serve
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Add your Groq API key
+echo "GROQ_API_KEY=your_groq_api_key_here" > .env
+
+# 5. Run the app
+streamlit run ui/app.py
 ```
 
 ---
@@ -58,7 +72,7 @@ ollama serve
 Employee question
         │
         ▼
-  Qwen 3.1:8B reads question
+  LLaMA 3.1:8B (via Groq) reads question
   + system prompt
   + 5 tool definitions
         │
@@ -70,20 +84,20 @@ Employee question
   → returns real result
         │
         ▼
-  Qwen 3.1:8B reads result
+  LLaMA 3.1:8B reads result
   "Now I need check_leave_balance too"
         │
         ▼
   tool_executor.py runs again
         │
         ▼
-  Qwen has enough context → writes final answer
+  Model has enough context → writes final answer
         │
         ▼
   Answer shown in chat UI
 ```
 
-The loop repeats until Qwen stops calling tools and gives a text answer.
+The loop repeats until the model stops calling tools and gives a text answer.
 This is the **ReAct pattern** (Reason + Act).
 
 ---
@@ -110,30 +124,29 @@ This is the **ReAct pattern** (Reason + Act).
 
 ---
 
-## Setup & Run
+## Environment Variables
 
-```bash
-# 1. Install dependencies
-pip install -r requirements.txt
+Create a `.env` file in the root of your project:
 
-# 2. Ensure Ollama is running with Qwen 3.1:8B model
-ollama serve
-
-# 3. Launch the chatbot (in a new terminal)
-streamlit run ui/app.py
 ```
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+Get your free API key at [console.groq.com](https://console.groq.com) — no credit card required.
 
 ---
 
-## Configuration
+## Deployment on Streamlit Cloud
 
-Update `agent/hr_agent.py` if needed to match your Ollama setup:
-
-```python
-# Default Ollama endpoint
-OLLAMA_BASE_URL = "http://localhost:11434"
-MODEL_NAME = "qwen:3.1-8b"
+1. Push your code to GitHub (make sure `.env` is in `.gitignore`)
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. Connect your GitHub repo
+4. Set main file path to `ui/app.py`
+5. Under **Advanced Settings → Secrets**, add:
 ```
+GROQ_API_KEY = "your_groq_api_key_here"
+```
+6. Click **Deploy** — your app will be live in 2-3 minutes
 
 ---
 
@@ -163,39 +176,45 @@ MODEL_NAME = "qwen:3.1-8b"
 
 ## RAG vs Agent — Key Difference
 
-| | RAG Bot (previous) | HR Agent (this) |
+| | RAG Bot | HR Agent (this) |
 |---|---|---|
-| Flow | Fixed: retrieve → answer | Dynamic: Qwen decides |
+| Flow | Fixed: retrieve → answer | Dynamic: model decides |
 | Tools | Only policy search | 5 tools + can chain them |
 | Actions | Read-only | Can apply leave, escalate |
 | Memory | Per-question | Multi-turn conversation |
 | Reasoning | None | Decides what to do next |
-| Model | N/A | Qwen 3.1:8B (local via Ollama) |
+| Model | N/A | LLaMA 3.1:8B via Groq (free) |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| LLM | LLaMA 3.1:8B via Groq API |
+| Agent Framework | Custom ReAct loop |
+| Frontend | Streamlit |
+| Policy Search | TF-IDF (scikit-learn) |
+| Deployment | Streamlit Cloud |
 
 ---
 
 ## Troubleshooting
 
-**Ollama connection error:**
+**Groq API key error:**
 ```
-ConnectionError: Failed to connect to Ollama at http://localhost:11434
+AuthenticationError: Invalid API key
 ```
-→ Make sure Ollama is running: `ollama serve`
+→ Check your `.env` file has the correct `GROQ_API_KEY` value.
 
-**Model not found:**
+**Module not found:**
 ```
-Error: Model 'qwen:3.1-8b' not found
+ModuleNotFoundError: No module named 'groq'
 ```
-→ Pull the model: `ollama pull qwen:3.1-8b`
+→ Run `pip install -r requirements.txt` inside your virtual environment.
+
+**Streamlit Cloud deployment failing:**
+→ Make sure `GROQ_API_KEY` is added in Streamlit Cloud secrets, not just `.env`.
 
 **Tool execution failing:**
-→ Check `tool_executor.py` logs and ensure all dependencies are installed (`pip install -r requirements.txt`)
-
----
-
-## Local Deployment Benefits
-
-✅ **Privacy** — All data stays on your machine  
-✅ **No API costs** — Ollama runs locally (free)  
-✅ **Fast inference** — GPU acceleration available  
-✅ **Offline capability** — Works without internet
+→ Check `tool_executor.py` logs and ensure all dependencies are installed.
