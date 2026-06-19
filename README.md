@@ -1,3 +1,14 @@
+---
+title: Hr Agent
+emoji: 🤖
+colorFrom: blue
+colorTo: green
+sdk: streamlit
+sdk_version: 1.28.0
+app_file: ui/app.py
+pinned: false
+---
+
 # HR Agent — Agentic AI with Tool Use
 
 An end-to-end **HR AI Agent** built with Groq and LLaMA 3.1:8B model using tool use API.
