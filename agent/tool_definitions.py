@@ -113,7 +113,7 @@ TOOL_DEFINITIONS = [
                 "subject":     {"type": "string", "description": "Brief subject of the issue."},
                 "message":     {"type": "string", "description": "Detailed description of the issue."}
             },
-            "required": ["employee_id", "subject", "message"]
+            "required": ["employee_id", "message"]
         }
     }
 ]
